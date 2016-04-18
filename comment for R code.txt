@@ -1,0 +1,52 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1348\cocoasubrtf170
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720
+
+\f0\fs24 \cf0 \expnd0\expndtw0\kerning0
+function [clean,bb,st] = CPDeNoise(x,D,bell)\
+% CPDeNoise -- De-Noising in an adaptively chosen CP basis\
+% \'a0Usage\
+% \'a0 \'a0[clean,bb,st] = CPDeNoise(x,D,bell)\
+% \'a0Inputs\
+% \'a0 \'a0x \'a0 \'a0 \'a0 1-d signal to be de-noised.\
+% \'a0 \'a0D \'a0 \'a0 \'a0 maximum allowed depth of basis tree\
+% \'a0 \'a0bell \'a0 \'a0bell for time splitting\
+% \'a0Outputs\
+% \'a0 \'a0clean \'a0 cleaned signal\
+% \'a0 \'a0bb \'a0 \'a0 \'a0basis tree naming basis in which de-noising was done\
+% \'a0 \'a0st \'a0 \'a0 \'a0stat tree: statistics driving basis search\
+%\
+% \'a0Description\
+% \'a0 \'a01. Assumes noise level == 1\
+% \'a0 \'a02. Uses Stein Unbiased Estimate of risk to evaluate basis\
+% \'a0 \'a03. Uses Coifman-Wickerhauser Best Basis algorithm to select\
+% \'a0 \'a0 \'a0 best basis\
+%\
+% See Also\
+% \'a0 \'a0WaveShrink, WPDeNoise\
+%\
+	[n,J] = dyadlength(x);\'a0\
+	thr = sqrt(2 .* log( n .* J) );\
+%\
+% \'a0 Find Best Basis for De-Noising\
+%\
+	cp \'a0 \'a0 \'a0= CPAnalysis(x,D,bell);\
+	st \'a0 \'a0 \'a0= CalcStatTree(cp,'SURE',thr);\
+	[bb,vt] = BestBasis(st,D);\
+%\
+% \'a0 Apply thresholding in Best Basis\
+%\
+	dirtycoef = UnpackBasisCoeff(bb,cp);\
+	cleancoef = HardThresh(dirtycoef,thr);\
+%\
+% \'a0 Transform back to time domain\
+%\
+	cleancp \'a0 = PackBasisCoeff(bb,cp,cleancoef);\
+	clean \'a0 \'a0 = CPSynthesis(bb,cleancp,bell); \'a0 \'a0 \'a0\
+\
+%\
+% Copyright (c) 1993-5.\'a0 Jonathan Buckheit, David Donoho and Iain Johnstone\
+%}
